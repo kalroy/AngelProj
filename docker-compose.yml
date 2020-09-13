@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+
+  mysql-development:
+    image: test-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: pass 
+    ports:
+      - "3308:3306"
+  admin:    
+    image: adminer    
+    ports:      
+      - "8080:8080"
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  inventoryManager:
+    image: inventorymanager
+    ports:
+      - "9100:9100"
+    links:
+      - "mysql-development"
+  checkoutmanager:
+    image: checkoutmanager
+    links:
+      - "rabbitmq"
+      - "inventoryManager"
+  cartManager:
+    image: cartmanager
+    links:
+      - "rabbitmq"
+      - "mysql-development"
+      - "inventoryManager"
+  apiGateway:
+    image: apigateway
+    ports:
+      - "5003:5003"
+    links:
+      - "rabbitmq"

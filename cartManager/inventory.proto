@@ -1,0 +1,15 @@
+syntax="proto3";
+package inventory;
+
+message QuantityRequest {
+	string productID = 1;
+}
+
+message QuantityResponse {
+	string productID = 1;
+	int32 quantity = 2;
+}
+
+service InventoryService {
+	rpc GetAvailableQuantity(QuantityRequest) returns (QuantityResponse)	 {}	
+}

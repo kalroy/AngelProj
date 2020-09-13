@@ -1,0 +1,43 @@
+syntax="proto3";
+package grpcinventoryserver;
+
+message QuantityRequest {
+	string productID = 1;
+}
+
+message QuantityResponse {
+	string productID = 1;
+	int32 quantity = 2;
+}
+
+message ReservationRequest {
+	string productID = 1;
+	int32 quantity = 2;
+}
+
+message ReservationResponse {
+	string reservationID = 1;
+}
+
+message RollBackReservationRequest {
+	string reservationID = 1;
+}
+
+message RollBackReservationResponse {
+	bool success = 1;
+}
+
+message CommitReservationRequest {
+	string reservationID = 1;
+}
+
+message CommitReservationResponse {
+	bool success = 1;
+}
+
+service InventoryService {
+	rpc GetAvailableQuantity(QuantityRequest) returns (QuantityResponse){}	
+	rpc GetResevationToken(ReservationRequest) returns (ReservationResponse){}
+	rpc RollBackReservation(RollBackReservationRequest) returns (RollBackReservationResponse){}
+	rpc CommitReservation(CommitReservationRequest) returns (CommitReservationResponse){}
+}
