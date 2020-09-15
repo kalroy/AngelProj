@@ -134,7 +134,7 @@ On getting a job to check out the list of items,it performs the following taks:
 2. RabbitMQ - Queuing mechanisms for the workers so that they can scale easily
 3. MySQL - Backend DB to hold the data
       
-![architecture](https://user-images.githubusercontent.com/7055118/93028369-2d2d5f00-f631-11ea-9a1b-fbb86b85ec10.jpg)
+![architecture1](https://user-images.githubusercontent.com/7055118/93203348-e98e3e80-f771-11ea-8557-b8527efe9f95.jpg)
 
 # Check Out Sequence
 
