@@ -3,7 +3,6 @@ package paymentmanager
 import (
 	"AngelProj/checkOutManager/grpcinventoryclient"
 	"context"
-	"fmt"
 	"time"
 
 	"google.golang.org/grpc"
@@ -94,33 +93,26 @@ func ProcessPayment(job CheckOutJob) error {
 	var reservationTokens []string
 
 	for _, item := range job.Items {
-		fmt.Println("PID::", item.ProductID, item.Quantity)
 		reservationToken, e := grpcGetToken(item.ProductID, int32(item.Quantity))
 		if e != nil {
-			fmt.Println("ERR::", e)
 			return e
 		}
 
 		reservationTokens = append(reservationTokens, reservationToken)
 	}
 
-	fmt.Println(reservationTokens)
 	err = payProcess()
-	fmt.Println(err)
 
 	for _, token := range reservationTokens {
-		fmt.Println("TK::", token)
 		if err != nil {
 			RollBackReservation(token)
 			return err
 		}
-		success, e := CommitReservation(token)
-		fmt.Println("S::", success)
+		_, e := CommitReservation(token)
 		if e != nil {
 			err = e
 		}
 	}
 
-	fmt.Println("EE::", err)
 	return err
 }

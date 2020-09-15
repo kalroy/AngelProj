@@ -135,16 +135,16 @@ func main() {
 	messageChannel, err = registerConsumer(rmqChannel, rmqQueue)
 	failOnError(err, "Failed to register consumer")
 
-	// err = rmqChannel.ExchangeDeclare(
-	// 	"cart-manager-results", // exchange-name
-	// 	"fanout",               //exchange type
-	// 	true,                   // durable
-	// 	false,                  // auto-delete
-	// 	false,                  // internal
-	// 	false,                  // no-wait
-	// 	nil,                    // arguments
-	// )
-	// panicOnError(err, "Failed to set RMQ Result Exchange")
+	err = rmqChannel.ExchangeDeclare(
+		"cart_result_exchange", // exchange-name
+		"fanout",               //exchange type
+		true,                   // durable
+		false,                  // auto-delete
+		false,                  // internal
+		false,                  // no-wait
+		nil,                    // arguments
+	)
+	panicOnError(err, "Failed to set RMQ Result Exchange")
 
 	var dbPool *sql.DB
 	dbPool, err = getDBConnectionPool()
@@ -165,10 +165,9 @@ func main() {
 
 	go joblistener.ListenAndProcessJobs(messageChannel, inputChannel)
 	for response := range outputChannel {
-		fmt.Println(response)
 		err = rmqChannel.Publish(
+			"cart_result_exchange",
 			"",
-			"cart_result_queue",
 			false,
 			false,
 			amqp.Publishing{
@@ -178,6 +177,9 @@ func main() {
 			},
 		)
 
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		response.AmqpMessage.Ack(false)
 	}
 

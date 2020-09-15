@@ -19,3 +19,4 @@ cd ./inventoryManager
 docker build -t inventorymanager .
 cd ..
 
+docker-compose up -d

@@ -100,13 +100,11 @@ func main() {
 	fmt.Println("About to start reading messages")
 	go func() {
 		for job := range messageChannel {
-			fmt.Println("CorrID::", job.CorrelationId)
 			j := paymentmanager.CheckOutJob{}
 			e := json.Unmarshal(job.Body, &j)
 			if e != nil {
 				fmt.Println(e.Error())
 			}
-			fmt.Printf("%v\n", j)
 			err = paymentmanager.ProcessPayment(j)
 
 			done := err == nil
@@ -118,7 +116,6 @@ func main() {
 
 			r := paymentmanager.CheckOutResponse{Done: done, Err: errString}
 			body, _ := json.Marshal(r)
-			fmt.Println("RESP::", string(body))
 			rmqChannel.Publish(
 				"",                 // exchange
 				"checkout-results", // routing key

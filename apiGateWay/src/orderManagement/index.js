@@ -1,8 +1,10 @@
 'use strict';
 
 // const Boom = require('@hapi/boom');
+const { v4 } = require('uuid');
+
 const Joi = require('joi');
-const cartHandler = require('./handler');
+const { cartHandler, listenForResults } = require('./handler');
 
 exports.plugin = {
   name: 'actions',
@@ -10,7 +12,7 @@ exports.plugin = {
   async register(server, options) {
     server.route({
       method: 'POST',
-      path: '/addToCart', // /clientID/{clientID}/productID/{productID}/quantity/{quantity}',
+      path: '/addToCart',
       options: {
         description: 'Add Items to User Cart',
         notes: [
@@ -25,10 +27,15 @@ exports.plugin = {
           }),
         },
       },
-      handler: async (request, h) => {
+      handler: 
+      async (request, h) => {
         const { clientID, productID, quantity } = request.payload;
-        const { status, error } = await cartHandler(clientID, productID, quantity, 'addToCart');
-        return h.response({ status, error }).code(200);
+        const requestID = v4();
+
+        const promise = listenForResults(requestID);
+
+        cartHandler(clientID, productID, quantity, 'addToCart', requestID);
+        return promise.then(({status, error}) => h.response({ status, error }).code(200));
       },
     });
 
@@ -49,7 +56,10 @@ exports.plugin = {
       },
       handler: async (request, h) => {
         const { clientID } = request.payload;
-        const promise = cartHandler(clientID, null, 0, 'checkOut', options);
+        const requestID = v4();
+
+        const promise = listenForResults(requestID);
+        cartHandler(clientID, null, 0, 'checkOut', requestID);
         return promise.then(({ status, error }) => h.response({ status, error }).code(200));
       },
     });

@@ -3,7 +3,6 @@ package grpcinventoryserver
 import (
 	"AngelProj/inventoryManager/dbhandler"
 	"context"
-	"fmt"
 )
 
 type Server struct {
@@ -14,7 +13,6 @@ func (s *Server) GetAvailableQuantity(cntx context.Context, request *QuantityReq
 	var response *QuantityResponse = &QuantityResponse{}
 
 	var productID string = request.GetProductID()
-	fmt.Println("PIDD::", productID)
 	quantity, err := s.DBHandler.GetQuantityFromDB(cntx, productID)
 	if err != nil {
 		return response, err

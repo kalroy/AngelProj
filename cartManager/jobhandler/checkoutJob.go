@@ -53,7 +53,6 @@ func checkOutItems(conn *sql.DB, channel *amqp.Channel, results <-chan amqp.Deli
 		},
 	)
 
-	fmt.Println("Reading results..")
 	var done bool = true
 	var e string
 	for result := range results {
@@ -62,13 +61,15 @@ func checkOutItems(conn *sql.DB, channel *amqp.Channel, results <-chan amqp.Deli
 			json.Unmarshal(result.Body, &res)
 			done = res.Done
 			e = res.Err
+
+			if done == true {
+				dbhandler.RemoveCart(conn, job.ClientID)
+			}
 			result.Ack(false)
 			break
 		}
 	}
 
-	fmt.Println("D:: ", done)
-	fmt.Println("E:: ", e)
 	if !done {
 		return fmt.Errorf(e)
 	}

@@ -18,10 +18,10 @@ const getCheckOutJob = (clientID, requestID) => ({
 });
 
 function consume({
-  connection, channel, resultQ, requestID,
+  connection, channel, queue, requestID,
 }) {
   return new Promise((resolve, reject) => {
-    channel.consume(resultQ, async (msg) => {
+    channel.consume(queue, async (msg) => {
       if (msg.properties.correlationId === requestID) {
         try {
           const r = JSON.parse(msg.content.toString());
@@ -34,7 +34,7 @@ function consume({
         }
       }
     }, {
-      noAck: true,
+      noAck: false,
     });
 
     // handle connection closed
@@ -48,24 +48,23 @@ function consume({
 async function listenForResults(requestID) {
   const connection = await amqp.connect('amqp://guest:guest@rabbitmq:5672/');
   const channel = await connection.createChannel();
-  const resultQ = 'cart_result_queue';
-  //await channel.assertQueue(resultQ, { durable: false });
+  const exchange = 'cart_result_exchange';
+  channel.assertExchange(exchange, 'fanout', { durable: true });
+  const queue = `queue-${v4()}`;
+  channel.assertQueue(queue, { exclusive: true, durable: false });
+  channel.bindQueue(queue, exchange, '');
   // start consuming messages
-  const { status, error } = await consume({
-    connection, channel, resultQ, requestID,
+  return consume({
+    connection, channel, queue, requestID,
   });
-
-  return { status, error };
 }
 
-const cartHandler = async (clientID, productID, quantity, jobType) => {
+const cartHandler = async (clientID, productID, quantity, jobType, requestID) => {
   const conn = await amqp.connect('amqp://guest:guest@rabbitmq:5672/');
   const pubChannel = await conn.createChannel();
 
   const pubQ = 'cart_manager_queue';
   await pubChannel.assertQueue(pubQ, { durable: false });
-
-  const requestID = v4();
 
   let job;
   switch (jobType) {
@@ -83,8 +82,12 @@ const cartHandler = async (clientID, productID, quantity, jobType) => {
     correlationId: requestID,
   });
 
-  const { status, error } = await listenForResults(requestID);
-  return { status, error };
+  console.log('Sent to queue')
+
+  return; 
 };
 
-module.exports = cartHandler;
+module.exports = {
+  cartHandler,
+  listenForResults,
+};
